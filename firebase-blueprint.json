@@ -1,0 +1,97 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and settings",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "PasswordEntry": {
+      "title": "Password Entry",
+      "description": "Stored credentials for websites or apps",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string", "description": "Website or App name" },
+        "username": { "type": "string", "description": "Gmail ID or username" },
+        "password": { "type": "string" },
+        "category": { "type": "string", "enum": ["social", "work", "other"] },
+        "isWeak": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "username", "password"]
+    },
+    "GovernmentDoc": {
+      "title": "Government Document",
+      "description": "Government related website or app credentials",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string", "description": "Website or App name" },
+        "username": { "type": "string" },
+        "password": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "username", "password"]
+    },
+    "PersonalDoc": {
+      "title": "Personal Document",
+      "description": "Personal identification details",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "aadharNumber": { "type": "string" },
+        "drivingLicense": { "type": "string" },
+        "panNumber": { "type": "string" },
+        "marksheetRollNumber": { "type": "string" },
+        "otherDocs": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId"]
+    },
+    "BankDetail": {
+      "title": "Bank Detail",
+      "description": "Bank account and card details",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "bankName": { "type": "string" },
+        "accountNumber": { "type": "string" },
+        "ifscCode": { "type": "string" },
+        "atmCardDetails": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "bankName", "accountNumber"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/users/{userId}/passwords/{passwordId}": {
+      "schema": "PasswordEntry",
+      "description": "User's stored passwords"
+    },
+    "/users/{userId}/governmentDocs/{docId}": {
+      "schema": "GovernmentDoc",
+      "description": "User's government related credentials"
+    },
+    "/users/{userId}/personalDocs/{docId}": {
+      "schema": "PersonalDoc",
+      "description": "User's personal identification details"
+    },
+    "/users/{userId}/bankDetails/{detailId}": {
+      "schema": "BankDetail",
+      "description": "User's bank account and card details"
+    }
+  }
+}

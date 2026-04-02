@@ -1,0 +1,5 @@
+{
+  "name": "Save Your Things",
+  "description": "A secure vault for your passwords, government documents, personal details, and bank information with weak password detection.",
+  "requestFramePermissions": []
+}

@@ -1,0 +1,124 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: /users/{userId}
+    // Fields: uid, email, displayName, photoURL, createdAt
+    //
+    // Collection: /users/{userId}/passwords/{passwordId}
+    // Fields: userId, title, username, password, category, isWeak, createdAt, updatedAt
+    //
+    // Collection: /users/{userId}/governmentDocs/{docId}
+    // Fields: userId, title, username, password, createdAt
+    //
+    // Collection: /users/{userId}/personalDocs/{docId}
+    // Fields: userId, aadharNumber, drivingLicense, panNumber, marksheetRollNumber, otherDocs, createdAt
+    //
+    // Collection: /users/{userId}/bankDetails/{detailId}
+    // Fields: userId, bankName, accountNumber, ifscCode, atmCardDetails, createdAt
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidString(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+             request.resource.data[field].size() >= minLen &&
+             request.resource.data[field].size() <= maxLen;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidUser(data) {
+      return hasRequiredFields(['uid', 'email']) &&
+             data.uid == request.auth.uid &&
+             data.email is string;
+    }
+
+    function isValidPasswordEntry(data) {
+      return hasRequiredFields(['userId', 'title', 'username', 'password']) &&
+             data.userId == request.auth.uid &&
+             isValidString('title', 1, 100) &&
+             isValidString('username', 1, 100) &&
+             isValidString('password', 1, 1000);
+    }
+
+    function isValidGovernmentDoc(data) {
+      return hasRequiredFields(['userId', 'title', 'username', 'password']) &&
+             data.userId == request.auth.uid &&
+             isValidString('title', 1, 100) &&
+             isValidString('username', 1, 100) &&
+             isValidString('password', 1, 1000);
+    }
+
+    function isValidPersonalDoc(data) {
+      return hasRequiredFields(['userId']) &&
+             data.userId == request.auth.uid;
+    }
+
+    function isValidBankDetail(data) {
+      return hasRequiredFields(['userId', 'bankName', 'accountNumber']) &&
+             data.userId == request.auth.uid &&
+             isValidString('bankName', 1, 100) &&
+             isValidString('accountNumber', 1, 100);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data);
+
+      match /passwords/{passwordId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidPasswordEntry(request.resource.data);
+        allow update: if isOwner(userId) && isValidPasswordEntry(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /governmentDocs/{docId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidGovernmentDoc(request.resource.data);
+        allow update: if isOwner(userId) && isValidGovernmentDoc(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /personalDocs/{docId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidPersonalDoc(request.resource.data);
+        allow update: if isOwner(userId) && isValidPersonalDoc(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /bankDetails/{detailId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidBankDetail(request.resource.data);
+        allow update: if isOwner(userId) && isValidBankDetail(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}
